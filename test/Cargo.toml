@@ -1,0 +1,16 @@
+[package]
+edition = "2021"
+name = "reaper-test-extension-plugin"
+publish = false
+version = "0.1.0"
+
+[dependencies]
+reaper-macros = "0.1.0"
+reaper-test = "0.1.0"
+[patch.crates-io]
+reaper-macros = {git = "https://github.com/Levitanus/reaper-rs", branch = "stable_for_rea-rs"}
+reaper-test = {git = "https://github.com/Levitanus/reaper-test"}
+
+[lib]
+crate-type = ["cdylib"]
+name = "reaper_test_extension_plugin"
