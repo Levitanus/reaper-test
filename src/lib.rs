@@ -82,7 +82,6 @@
 //! `cargo build --workspace; cargo test`
 //!
 
-use log::info;
 use reaper_low::register_plugin_destroy_hook;
 use reaper_medium::{CommandId, ControlSurface, HookCommand, OwnedGaccelRegister};
 use std::{error::Error, fmt::Debug, panic, process};
@@ -229,11 +228,11 @@ impl ReaperTest {
     }
 
     fn test(&mut self) {
-        info!("# Testing reaper-rs\n");
+        println!("# Testing reaper-rs\n");
         let result = panic::catch_unwind(|| -> TestStepResult {
             let rpr = ReaperTest::get();
             for step in rpr.steps.iter() {
-                info!("Testing step: {}", step.name);
+                println!("Testing step: {}", step.name);
                 (step.operation)(rpr)?;
             }
             Ok(())

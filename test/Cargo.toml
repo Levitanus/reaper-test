@@ -5,10 +5,12 @@ publish = false
 version = "0.1.0"
 
 [dependencies]
+env_logger = "0.10"
+log = "0.4"
 reaper-low = "0.1.0"
 reaper-macros = "0.1.0"
 reaper-medium = "0.1.0"
-reaper-test = "0.1.0"
+reaper-test = {path = "../", version = "0.1.0"}
 
 [patch.crates-io]
 reaper-low = {git = "https://github.com/Levitanus/reaper-rs", branch = "stable_for_rea-rs"}

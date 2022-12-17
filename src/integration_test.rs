@@ -55,6 +55,7 @@ impl ReaperVersion {
 }
 
 pub fn run_integration_test(reaper_version: ReaperVersion) {
+    env_logger::init();
     if cfg!(target_family = "windows") {
         println!("REAPER integration tests currently not supported on Windows");
         return;
@@ -116,7 +117,7 @@ fn run_integration_test_in_reaper(reaper_executable: &Path) -> Result<()> {
     println!("Starting REAPER ({:?})...", &reaper_executable);
     let mut child = Command::new(reaper_executable)
         .env("RUN_REAPER_INTEGRATION_TEST", "true")
-        .env("RUST_LOG=debug", "true")
+        .env("RUST_LOG", "debug")
         .arg("-newinst")
         .arg("-new")
         // .arg("-splashlog")
