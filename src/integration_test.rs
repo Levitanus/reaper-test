@@ -60,7 +60,8 @@ pub fn run_integration_test(reaper_version: ReaperVersion) {
         println!("REAPER integration tests currently not supported on Windows");
         return;
     }
-    let target_dir_path = std::env::current_dir().unwrap().join("./target");
+    let target_dir_path =
+        PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").unwrap()).join("../target");
     let reaper_download_dir_path = target_dir_path.join("reaper");
     println!("Running integration test");
     let result = if cfg!(target_os = "macos") {
