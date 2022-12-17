@@ -4,7 +4,7 @@
 //! you need transform the project folder to workspace. So, basically,
 //! project tree would look similar to this:
 //!
-//!```ignore
+//! ```bash
 //! workspace_directory
 //! ├── Cargo.toml
 //! ├── README.md
@@ -16,7 +16,7 @@
 //!     │   └── lib.rs
 //!     └── tests
 //!         └── integration_test.rs
-//!```
+//! ```
 //!
 //! `test` crate will not be delivered to the end-user, but will be used for
 //! testing your library.
