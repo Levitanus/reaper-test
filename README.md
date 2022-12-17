@@ -14,8 +14,9 @@ project tree would look similar to this:
 workspace_directory
 ├── Cargo.toml
 ├── README.md
-├── src
-│   └── lib.rs
+├—— my_lib
+├   ├—— src
+│      └── lib.rs
 └── test
     ├── Cargo.toml
     ├── src
@@ -39,6 +40,7 @@ reaper-low = "0.1.0"
 reaper-macros = "0.1.0"
 reaper-medium = "0.1.0"
 reaper-test = "0.1.0"
+my_lib = {path = "../my_lib"}
 
 [patch.crates-io]
 reaper-low = {git = "https://github.com/Levitanus/reaper-rs", branch = "stable_for_rea-rs"}
