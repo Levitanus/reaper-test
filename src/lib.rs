@@ -21,7 +21,8 @@
 //! `test` crate will not be delivered to the end-user, but will be used for
 //! testing your library.
 //!
-//! contents of `test/Cargo.toml`:
+//! Since there is a need for patching of reaper-low and
+//! reaper-medium, contents of `test/Cargo.toml`:
 //! ```ignore
 //! [package]
 //! edition = "2021"
@@ -30,10 +31,15 @@
 //! version = "0.1.0"
 //!
 //! [dependencies]
+//! reaper-low = "0.1.0"
 //! reaper-macros = "0.1.0"
+//! reaper-medium = "0.1.0"
 //! reaper-test = "0.1.0"
+//!
 //! [patch.crates-io]
+//! reaper-low = {git = "https://github.com/Levitanus/reaper-rs", branch = "stable_for_rea-rs"}
 //! reaper-macros = {git = "https://github.com/Levitanus/reaper-rs", branch = "stable_for_rea-rs"}
+//! reaper-medium = {git = "https://github.com/Levitanus/reaper-rs", branch = "stable_for_rea-rs"}
 //! reaper-test = {git = "https://github.com/Levitanus/reaper-test"}
 //!
 //! [lib]
@@ -72,7 +78,7 @@
 //! }
 //! ```
 //!
-//! to run integration tests type:
+//! to run integration tests, go to the test folder and type:
 //! `cargo build --workspace; cargo test`
 //!
 
