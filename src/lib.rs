@@ -61,12 +61,13 @@
 //!
 //! `test/src/lib.rs` is the file your integration tests are placed in.
 //! ```ignore
+//! use rea_rs::{PluginContext, Reaper};
 //! use reaper_macros::reaper_extension_plugin;
 //! use reaper_test::*;
 //! use std::error::Error;
 //!
-//! fn hello_world(reaper: &ReaperTest) -> TestStepResult {
-//!     reaper.medium().show_console_msg("Hello world!");
+//! fn hello_world(reaper: &mut Reaper) -> TestStepResult {
+//!     reaper.show_console_msg("Hello world!");
 //!     Ok(())
 //! }
 //!
@@ -84,18 +85,17 @@
 //! `cargo build --workspace; cargo test`
 //!
 
-use reaper_low::register_plugin_destroy_hook;
-use reaper_medium::{CommandId, ControlSurface, HookCommand, OwnedGaccelRegister};
+use rea_rs::{PluginContext, Reaper, Timer};
+use rea_rs_low::register_plugin_destroy_hook;
 use std::{error::Error, fmt::Debug, panic, process};
 
 pub mod integration_test;
 pub use integration_test::*;
-pub use reaper_low::PluginContext;
 
 static mut INSTANCE: Option<ReaperTest> = None;
 
 pub type TestStepResult = Result<(), Box<dyn Error>>;
-pub type TestCallback = dyn Fn(&'static ReaperTest) -> TestStepResult;
+pub type TestCallback = dyn Fn(&'static mut Reaper) -> TestStepResult;
 
 pub struct TestStep {
     name: String,
@@ -104,7 +104,7 @@ pub struct TestStep {
 impl TestStep {
     pub fn new(
         name: impl Into<String>,
-        operation: impl Fn(&'static ReaperTest) -> Result<(), Box<dyn Error>> + 'static,
+        operation: impl Fn(&'static mut Reaper) -> Result<(), Box<dyn Error>> + 'static,
     ) -> Self {
         Self {
             name: name.into(),
@@ -118,92 +118,57 @@ impl Debug for TestStep {
     }
 }
 
-#[derive(Debug)]
-struct ActionHook {
-    actions: Vec<CommandId>,
+fn test(_flag: i32) -> Result<(), Box<dyn Error>> {
+    ReaperTest::get_mut().test();
+    Ok(())
 }
-impl ActionHook {
-    fn new() -> Self {
-        return Self {
-            actions: Vec::new(),
-        };
+
+struct IntegrationTimer {}
+impl Timer for IntegrationTimer {
+    fn run(&mut self) -> Result<(), Box<dyn Error>> {
+        test(0)?;
+        self.stop();
+        Ok(())
     }
-}
-impl HookCommand for ActionHook {
-    fn call(command_id: reaper_medium::CommandId, _flag: i32) -> bool {
-        let rpr = ReaperTest::get_mut();
-        let hook = rpr.action_hook.as_ref().expect("should be hook here");
-        for action in hook.actions.iter() {
-            if action.get() == command_id.get() {
-                rpr.test();
-                return true;
-            }
-        }
-        return false;
+
+    fn id_string(&self) -> String {
+        "integration_timer".to_string()
     }
 }
 
-#[derive(Debug)]
 pub struct ReaperTest {
-    low: reaper_low::Reaper,
-    medium_session: reaper_medium::ReaperSession,
-    medium: reaper_medium::Reaper,
-    action_hook: Option<ActionHook>,
+    reaper: Reaper,
     steps: Vec<TestStep>,
     is_integration_test: bool,
 }
 impl ReaperTest {
-    /// Makes the given instance available globally.
-    ///
-    /// After this has been called, the instance can be queried globally using
-    /// `get()`.
-    ///
-    /// This can be called once only. Subsequent calls won't have any effect!
-    fn make_available_globally(reaper: ReaperTest) {
+    fn make_available_globally(r_test: ReaperTest) {
         static INIT_INSTANCE: std::sync::Once = std::sync::Once::new();
         unsafe {
             INIT_INSTANCE.call_once(|| {
-                INSTANCE = Some(reaper);
+                INSTANCE = Some(r_test);
                 register_plugin_destroy_hook(|| INSTANCE = None);
             });
         }
     }
-
     pub fn setup(context: PluginContext, action_name: &'static str) -> &'static mut Self {
-        let low = reaper_low::Reaper::load(context);
-        let medium_session = reaper_medium::ReaperSession::new(low);
-        let medium = medium_session.reaper().clone();
-        reaper_medium::Reaper::make_available_globally(medium.clone());
+        let reaper = Reaper::load(context);
         let mut instance = Self {
-            low,
-            medium_session,
-            medium,
-            action_hook: None,
+            reaper,
             steps: Vec::new(),
             is_integration_test: std::env::var("RUN_REAPER_INTEGRATION_TEST").is_ok(),
         };
         let integration = instance.is_integration_test;
-        instance.register_action(action_name, action_name);
+        instance
+            .reaper
+            .register_action(action_name, action_name, test, None)
+            .expect("Can not reigister test action");
         Self::make_available_globally(instance);
         let obj = ReaperTest::get_mut();
         if integration {
-            obj.medium_session_mut()
-                .plugin_register_add_csurf_inst(Box::new(ReaperTestSurface {}))
-                .expect("Can not register test control surface");
+            obj.reaper.register_timer(Box::new(IntegrationTimer {}))
         }
         ReaperTest::get_mut()
-    }
-    pub fn low(&self) -> &reaper_low::Reaper {
-        &self.low
-    }
-    pub fn medium_session(&self) -> &reaper_medium::ReaperSession {
-        &self.medium_session
-    }
-    pub fn medium_session_mut(&mut self) -> &mut reaper_medium::ReaperSession {
-        &mut self.medium_session
-    }
-    pub fn medium(&self) -> &reaper_medium::Reaper {
-        &self.medium
     }
 
     /// Gives access to the instance which you made available globally before.
@@ -232,11 +197,22 @@ impl ReaperTest {
     fn test(&mut self) {
         println!("# Testing reaper-rs\n");
         let result = panic::catch_unwind(|| -> TestStepResult {
-            let rpr = ReaperTest::get();
-            for step in rpr.steps.iter() {
-                println!("Testing step: {}", step.name);
-                (step.operation)(rpr)?;
-            }
+            // let r_test = ReaperTest::get_mut();
+            // let rpr = &mut r_test.reaper;
+            // for step in r_test.steps.iter() {
+            //     println!("Testing step: {}", step.name);
+            //     (step.operation)(rpr)?;
+            // }
+            ReaperTest::get()
+                .steps
+                .iter()
+                .map(|step| -> Result<(), Box<dyn Error>> {
+                    println!("Testing step: {}", step.name);
+                    let rpr = &mut ReaperTest::get_mut().reaper;
+                    (step.operation)(rpr)?;
+                    Ok(())
+                })
+                .count();
             Ok(())
         });
         let final_result = match result.is_err() {
@@ -267,46 +243,5 @@ impl ReaperTest {
 
     pub fn push_test_step(&mut self, step: TestStep) {
         self.steps.push(step);
-    }
-
-    fn register_action(
-        &mut self,
-        command_name: &'static str,
-        description: &'static str,
-    ) -> CommandId {
-        self.check_action_hook();
-        let hook = self.action_hook.as_mut().expect("should be hook here");
-        let medium = &mut self.medium_session;
-        let command_id = medium.plugin_register_add_command_id(command_name).unwrap();
-        medium
-            .plugin_register_add_gaccel(OwnedGaccelRegister::without_key_binding(
-                command_id,
-                description,
-            ))
-            .expect("Can not register test action");
-        let command_id = CommandId::from(command_id);
-        hook.actions.push(command_id);
-        command_id
-    }
-
-    fn check_action_hook(&mut self) {
-        if self.action_hook.is_none() {
-            self.action_hook = Some(ActionHook::new());
-            self.medium_session
-                .plugin_register_add_hook_command::<ActionHook>()
-                .expect("can not register hook");
-        }
-    }
-}
-
-#[derive(Debug)]
-struct ReaperTestSurface {}
-impl ControlSurface for ReaperTestSurface {
-    fn run(&mut self) {
-        let rpr = ReaperTest::get_mut();
-        if rpr.is_integration_test {
-            rpr.test();
-            rpr.is_integration_test = false;
-        }
     }
 }

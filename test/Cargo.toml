@@ -7,16 +7,10 @@ version = "0.1.0"
 [dependencies]
 env_logger = "0.10"
 log = "0.4"
-reaper-low = "0.1.0"
-reaper-macros = "0.1.0"
-reaper-medium = "0.1.0"
-reaper-test = "0.1.0"
-
-[patch.crates-io]
-reaper-low = {git = "https://github.com/Levitanus/reaper-rs", branch = "stable_for_rea-rs"}
-reaper-macros = {git = "https://github.com/Levitanus/reaper-rs", branch = "stable_for_rea-rs"}
-reaper-medium = {git = "https://github.com/Levitanus/reaper-rs", branch = "stable_for_rea-rs"}
-reaper-test = {git = "https://github.com/Levitanus/reaper-test"}
+rea-rs = {version = "0.1.1", path = "../../rea-rs-workspace/rea-rs"}
+rea-rs-low = {version = "0.1.1", path = "../../rea-rs-workspace/low"}
+rea-rs-macros = {version = "0.1.1", path = "../../rea-rs-workspace/macros"}
+rea-rs-test = {version = "0.1.1", path = "../"}
 
 [lib]
 crate-type = ["cdylib"]

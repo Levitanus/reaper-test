@@ -12,44 +12,52 @@ type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
 pub enum ReaperVersion {
     V7_71,
+    V7_73,
 }
 impl ReaperVersion {
     pub fn latest() -> Self {
-        Self::V7_71
+        Self::V7_73
     }
     fn linux_download_url(&self) -> &'static str {
         match self {
             Self::V7_71 => "https://www.reaper.fm/files/6.x/reaper671_linux_x86_64.tar.xz",
+            Self::V7_73 => "https://www.reaper.fm/files/6.x/reaper673_linux_x86_64.tar.xz",
         }
     }
     fn macos_download_url(&self) -> &'static str {
         match self {
             Self::V7_71 => "https://www.reaper.fm/files/6.x/reaper671_x86_64.dmg",
+            Self::V7_73 => "https://www.reaper.fm/files/6.x/reaper673_x86_64.dmg",
         }
     }
     fn linux_download_path(&self) -> PathBuf {
         match self {
             Self::V7_71 => PathBuf::from("reaper_linux_x86_64/REAPER"),
+            Self::V7_73 => PathBuf::from("reaper_linux_x86_64/REAPER"),
         }
     }
     fn macos_download_path(&self) -> PathBuf {
         match self {
             Self::V7_71 => PathBuf::from("reaper_macos_x86_64"),
+            Self::V7_73 => PathBuf::from("reaper_macos_x86_64"),
         }
     }
     fn linux_executable_path(&self) -> PathBuf {
         match self {
             Self::V7_71 => PathBuf::from("reaper"),
+            Self::V7_73 => PathBuf::from("reaper"),
         }
     }
     fn macos_executable_path(&self) -> PathBuf {
         match self {
             Self::V7_71 => PathBuf::from("REAPER.app/Contents/MacOS/REAPER"),
+            Self::V7_73 => PathBuf::from("REAPER.app/Contents/MacOS/REAPER"),
         }
     }
     fn macos_install_folder(&self) -> PathBuf {
         match self {
             Self::V7_71 => PathBuf::from("/Volumes/REAPER_INSTALL_INTEL64/REAPER.app"),
+            Self::V7_73 => PathBuf::from("/Volumes/REAPER_INSTALL_INTEL64/REAPER.app"),
         }
     }
 }

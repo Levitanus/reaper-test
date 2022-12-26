@@ -1,9 +1,10 @@
-use reaper_macros::reaper_extension_plugin;
+use rea_rs::{PluginContext, Reaper};
+use rea_rs_macros::reaper_extension_plugin;
 use reaper_test::*;
 use std::error::Error;
 
-fn hello_world(reaper: &ReaperTest) -> TestStepResult {
-    reaper.medium().show_console_msg("Hello world!");
+fn hello_world(reaper: &mut Reaper) -> TestStepResult {
+    reaper.show_console_msg("Hello world!");
     Ok(())
 }
 
