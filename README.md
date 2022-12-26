@@ -1,5 +1,7 @@
 # reaper-test
 
+Attention! this crate was renamed to `rea-rs-test` and moved to the main workspace: `rea-rs` for keeping them synchronized. This repository will not be updated. But still will present, as it can be used alongside with `reaper-rs` crates, while `rea-rs` and `rea-rs-test` unbounded dependencies on reaper-rs.
+
 Makes testing of REAPER extension plugins easy.
 
 This integration test suite was originally written by Benjamin Klum <benjamin.klum@helgoboss.org> for `reaper-rs`. But it was dependent on the `reaper-high` crate, which was not and would not be soon published. And, also, it was deeply integrated into the library.
